@@ -49,24 +49,30 @@ class VGG(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
 class Net(nn.Module):
-    def __init__(self):
+    def __init__(self, num_classes=10, init_weights=False, lr_scheduler=None):
         super(Net, self).__init__()
-        features = nn.Sequential(
-        nn.Conv2d(3, 6, 5),
-        nn.MaxPool2d(2, 2),
-        nn.Conv2d(6, 16, 5),
-        nn.Linear(16*5*5, 120),
-        nn.Linear(120, 84),
-        nn.Linear(84, 10),
+        self.lr_scheduler = lr_scheduler
+        self.features = nn.Sequential(
+            nn.Conv2d(3, 6, 5, padding=2),
+            nn.ReLU(True),
+            nn.MaxPool2d(2, 2),
+            nn.Conv2d(6, 16, 5, padding=2),
+            nn.ReLU(True),
+            nn.MaxPool2d(2, 2),
         )
-
+        self.classifier = nn.Sequential(
+            nn.Linear(16 * 8 * 8, 120),
+            nn.ReLU(True),
+            nn.Linear(120, 84),
+            nn.ReLU(True),
+            nn.Linear(84, num_classes),
+        )
+        if init_weights:
+            self._initialize_weights()
     def forward(self,x):
-        x = self.pool(nn.Relu(self.conv1(x)))
-        x = self.pool(nn.Relu(self.conv2(x)))
-        x = x.view(-1, 16 * 5 * 5)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        x=self.features(x)
+        x = torch.flatten(x, start_dim=1)
+        x=self.classifier(x)
         return x
 
     def _initialize_weights(self):
@@ -80,6 +86,8 @@ class Net(nn.Module):
                 nn.init.xavier_uniform_(m.weight)
                 # nn.init.normal_(m.weight, 0, 0.01)
                 nn.init.constant_(m.bias, 0)
+
+
 def make_features(cfg: list):
     layers = []
     in_channels = 3

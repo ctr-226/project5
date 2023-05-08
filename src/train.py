@@ -105,10 +105,10 @@ def run(epochs, dataset, classes, channels, batch_size,
     train_set, _ = load_cifar10('dataset', True, dataset, batch_size)
     valid_set, _ = load_cifar10('dataset', False, dataset, batch_size)
     lr_scheduler = None
-    net = model.vgg(
-        model_name='vgg11', num_classes=classes, lr_scheduler=lr_scheduler
-    ).to(device)
-
+    # net = model.vgg(
+    #     model_name='vgg11', num_classes=classes, lr_scheduler=lr_scheduler
+    # ).to(device)
+    net = model.Net(num_classes=classes).to(device)
     save_path = os.path.join(experiments_path, f'model/{model_name}')
     if not os.path.exists(save_path):
         os.makedirs(save_path, exist_ok=True)

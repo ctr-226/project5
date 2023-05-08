@@ -11,5 +11,5 @@
   "lr_decay": 0.1,
   "weight_decay": 4e-3,
   "dropout_rate": 0.5,
-  "device": "cuda:0"
+  "device": "cpu"
 }
