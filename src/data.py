@@ -41,7 +41,7 @@ def split_dict(dict, save_path):
 
 def main():
     dataset_root = '../dataset'
-    file_path = 'D:\AI Math Theory\project5\dataset\cifar-10-batches-py\data_batch_1'
+    # file_path = 'D:\AI Math Theory\project5\dataset\cifar-10-batches-py\data_batch_1'
     train_batch = glob.glob("../dataset/cifar-10-batches-py/data*")
     test_batch = glob.glob("../dataset/cifar-10-batches-py/test_batch")
     for batch in train_batch:

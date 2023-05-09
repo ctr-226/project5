@@ -100,7 +100,7 @@ def train(net, train_set, device, optimizer, criterion):
 
 def run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, momentum, dropout_rate,
-        model_name, device, experiments_path):
+        model_name, features, classifier, classifier_in, device, experiments_path):
 
     train_set, _ = load_cifar10('dataset', True, dataset, batch_size)
     valid_set, _ = load_cifar10('dataset', False, dataset, batch_size)
@@ -108,7 +108,7 @@ def run(epochs, dataset, classes, channels, batch_size,
     # net = model.vgg(
     #     model_name='vgg11', num_classes=classes, lr_scheduler=lr_scheduler
     # ).to(device)
-    net = model.Net(num_classes=classes).to(device)
+    net = model.cnn(features, classifier, classifier_in, dropout_rate).to(device)
     save_path = os.path.join(experiments_path, f'model/{model_name}')
     if not os.path.exists(save_path):
         os.makedirs(save_path, exist_ok=True)
@@ -158,6 +158,9 @@ def main(_):
     dataset = config['dataset']
     classes = config['num_classes']
     channels = config['channels']
+    features = config['features']
+    classifier = config['classifier']
+    classifier_in = config['classifier_in']
     epochs = config['epochs']
     batch_size = config['batch_size']
     device = config['device']
@@ -173,7 +176,7 @@ def main(_):
 
     run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, momentum, dropout_rate,
-        model_name, device, experiments_path)
+        model_name, features=features, classifier=classifier ,classifier_in=classifier_in,device=device, experiments_path=experiments_path)
 
 
 if __name__ == '__main__':
