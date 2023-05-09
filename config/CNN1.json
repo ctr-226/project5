@@ -1,5 +1,5 @@
 {
-  "model_name": "VGG11",
+  "model_name": "CNN1",
   "dataset": "cifar10",
   "num_classes": 10,
   "channels": 3,

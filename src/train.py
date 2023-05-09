@@ -20,7 +20,7 @@ import model
 from tqdm import tqdm
 
 experiments_path = '..'  # 项目根目录
-flags.DEFINE_string('config_name', 'config/VGG11.json', help='')
+flags.DEFINE_string('config_name', 'config/CNN1.json', help='')
 
 def load_cifar10(path, is_train, name, batch_size):
     data_transform = {
