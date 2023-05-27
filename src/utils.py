@@ -1,10 +1,7 @@
-import os
 import json
-import pickle
-import random
-import torch
+import os
+
 import matplotlib.pyplot as plt
-from torchvision import transforms
 
 
 def read_dataset(root: str, is_train: bool):

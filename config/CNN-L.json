@@ -1,0 +1,18 @@
+{
+  "model_name": "CNN-L",
+  "dataset": "cifar10",
+  "num_classes": 10,
+  "channels": 3,
+  "features": [32,"M",64,"M",64,"M"],
+  "classifier_in": 1024,
+  "classifier": [ 120, "R", 84, "R", 10],
+  "batch_size": 100,
+  "epochs": 100,
+  "momentum": 0.9,
+  "lr": 2e-4,
+  "lr_step": [20,50],
+  "lr_decay": 0.1,
+  "weight_decay": 2e-3,
+  "dropout_rate": 0.5,
+  "device": "cpu"
+}

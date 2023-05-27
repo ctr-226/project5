@@ -1,8 +1,9 @@
-import pickle
 import glob
+import os
+import pickle
+
 import cv2
 import numpy as np
-import os
 
 label_name = ["airplane",
               "automobile",
@@ -46,10 +47,14 @@ def main():
     test_batch = glob.glob("../dataset/cifar-10-batches-py/test_batch")
     for batch in train_batch:
         save_path = '../dataset/cifar10/train'
+        if not os.path.exists(save_path):
+            os.mkdir(save_path)
         dict = unpickle(batch)
         split_dict(dict, save_path)
     for batch in test_batch:
         save_path = '../dataset/cifar10/test'
+        if not os.path.exists(save_path):
+            os.mkdir(save_path)
         dict = unpickle(batch)
         split_dict(dict, save_path)
 

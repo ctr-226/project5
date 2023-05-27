@@ -1,26 +1,24 @@
-import argparse
-import datetime
-from absl import flags
-from absl import app
+import json
 import os
-import time
+
 import numpy as np
-import sys
 import torch
-import torch.nn as nn
-import torch.optim as optim
 import torch.utils.data
+from absl import app
+from absl import flags
 # from tqdm import tqdm
 from absl import logging
+from torch.optim.lr_scheduler import MultiStepLR
 from torchvision import transforms
-from Dataset import MyDataSet
-from utils import read_dataset, load_config
-import json
-import model
 from tqdm import tqdm
 
+import model
+from Dataset import MyDataSet
+from utils import read_dataset, load_config
+
 experiments_path = '..'  # 项目根目录
-flags.DEFINE_string('config_name', 'config/CNN1.json', help='')
+flags.DEFINE_string('config_name', 'config/CNN-R.json', help='')
+
 
 def load_cifar10(path, is_train, name, batch_size):
     data_transform = {
@@ -44,6 +42,7 @@ def load_cifar10(path, is_train, name, batch_size):
                                               collate_fn=dataset.collate_fn)
 
     return data_loader, images_path
+
 
 @torch.no_grad()
 def validation(net, val_set, criterion, device):
@@ -71,7 +70,8 @@ def validation(net, val_set, criterion, device):
     accuracy = 100 * corrects / num_data
     return accuracy, np.mean(test_loss)
 
-def train(net, train_set, device, optimizer, criterion):
+
+def train(net, train_set, device, optimizer, criterion, lr_scheduler):
     _loss = []  # 记录每轮训练的train_loss
     num_data = 0
     corrects = 0
@@ -91,9 +91,10 @@ def train(net, train_set, device, optimizer, criterion):
         loss.backward()
         optimizer.step()
     train_accuracy = 100 * corrects / num_data
-    if net.lr_scheduler:
-        lr = net.lr_scheduler.get_last_lr()[0]
-        net.lr_scheduler.step()
+    if lr_scheduler:
+        lr = lr_scheduler.get_last_lr()[0]
+        print(f"learing rate:{lr}")
+        lr_scheduler.step()
 
     return train_accuracy, np.mean(_loss)
 
@@ -101,13 +102,9 @@ def train(net, train_set, device, optimizer, criterion):
 def run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, momentum, dropout_rate,
         model_name, features, classifier, classifier_in, device, experiments_path):
-
     train_set, _ = load_cifar10('dataset', True, dataset, batch_size)
     valid_set, _ = load_cifar10('dataset', False, dataset, batch_size)
-    lr_scheduler = None
-    # net = model.vgg(
-    #     model_name='vgg11', num_classes=classes, lr_scheduler=lr_scheduler
-    # ).to(device)
+
     net = model.cnn(features, classifier, classifier_in, dropout_rate).to(device)
     save_path = os.path.join(experiments_path, f'model/{model_name}')
     if not os.path.exists(save_path):
@@ -131,8 +128,9 @@ def run(epochs, dataset, classes, channels, batch_size,
         momentum=momentum,
         weight_decay=weight_decay
     )  # SGD随机梯度下降优化器
+    lr_scheduler = MultiStepLR(optimizer, milestones=lr_step, gamma=lr_decay)
     for epoch in range(epochs):
-        train_accuracy, train_loss = train(net, train_set, device, optimizer, criterion)
+        train_accuracy, train_loss = train(net, train_set, device, optimizer, criterion, lr_scheduler)
 
         test_accuracy, test_loss = validation(net, valid_set, criterion, device)
         # 输出每轮训练的信息
@@ -140,7 +138,7 @@ def run(epochs, dataset, classes, channels, batch_size,
             f'Epoch: {epoch + 1:03d}/{epochs:03d} | train_loss={train_loss:.4f} | test_loss={test_loss:.4f} | lr={lr} | train_accuracy={train_accuracy:.2f} | test_accuracy={test_accuracy:.2f}'
         )
 
-        history['train_loss'].append(float(train_loss)) # 记录每轮的train_loss
+        history['train_loss'].append(float(train_loss))  # 记录每轮的train_loss
         history['test_loss'].append(float(test_loss))  # 记录每轮的test_loss
         history['train_accuracy'].append(float(train_accuracy))  # 记录每轮的test_accuracy
         history['test_accuracy'].append(float(test_accuracy))  # 记录每轮的test_accuracy
@@ -150,6 +148,7 @@ def run(epochs, dataset, classes, channels, batch_size,
             torch.save(net.state_dict(), os.path.join(save_path, f'model-{epoch + 1:03d}.pth'))
         with open(os.path.join(history_path, f'{model_name}.json'), mode='w', encoding='utf-8') as f:
             json.dump(history, f, ensure_ascii=True, indent=2)
+
 
 def main(_):
     FLAGS = flags.FLAGS
@@ -176,7 +175,8 @@ def main(_):
 
     run(epochs, dataset, classes, channels, batch_size,
         lr, lr_step, lr_decay, weight_decay, momentum, dropout_rate,
-        model_name, features=features, classifier=classifier ,classifier_in=classifier_in,device=device, experiments_path=experiments_path)
+        model_name, features=features, classifier=classifier, classifier_in=classifier_in, device=device,
+        experiments_path=experiments_path)
 
 
 if __name__ == '__main__':
