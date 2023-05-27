@@ -13,6 +13,9 @@ from random import choice
 import cv2
 import numpy as np
 
+'''
+此文件并未实际使用，可以忽略
+'''
 
 def Image_flip(img, mode):
     """
